@@ -36,8 +36,80 @@ Model size: **461 layers**, **18,388,982 parameters**
 | YOLOv5s       | 39.4    | 0.15         | 0.754     | 0.382  | 0.120    | 0.266       | **7 ms**       |
 | YOLO-CROWD    | **43.6**| **0.158**    | **0.756** | **0.424**| **0.091** | **0.158**   | 10.1 ms        |
 
-## Environment Setup
+### Dataset
 
-1. Create a Python Virtual Environment:  
-   ```shell
-   conda create -n {name} python=x.x
+Download our Dataset [crowd-counting-dataset-w3o7w](https://universe.roboflow.com/crowd-dataset/crowd-counting-dataset-w3o7w), while exporting the dataset select **YOLO v5 PyTorch** Format.
+
+![our-dataset](https://github.com/zaki1003/YOLO-CROWD/assets/65148928/7c574121-7eb5-450c-a61d-d259643d22fb)
+
+
+## Preweight
+The link is [yolov5s.pt](https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt)
+
+
+### Training
+Train your model on **crowd-counting-dataset-w3o7w** dataset.
+```shell
+python train.py --img 416
+                --batch 16
+                --epochs 200
+                --data {dataset.location}/data.yaml
+                --cfg models/yolo-crowd.yaml    
+                --weights yolov5s.pt      
+                --name yolo_crowd_results
+                --cache
+```
+
+## Postweight
+The link is [yolo-crowd.pt](https://drive.google.com/file/d/1xxXVCzseuzmHv7NoMQ03RVU_tDisWXjM/view?usp=sharing)
+If you want to have more inference speed try to install TensorRt and use this vesion [yolo-crowd.engine](https://drive.google.com/file/d/1-189sscpNZBFaSHOz7dnEgAaFeUALiow/view?usp=sharing)
+
+
+### Test
+```shell
+python detect.py --weights yolo-crowd.pt --source 0                               # webcam
+                                                  img.jpg                         # image
+                                                  vid.mp4                         # video
+                                                  screen                          # screenshot
+                                                  path/                           # directory
+                                                  list.txt                        # list of images
+                                                  list.streams                    # list of streams
+                                                  'path/*.jpg'                    # glob
+                                                  'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                                                  'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+```
+
+
+
+## Results
+
+![results-yolo-crowd](https://github.com/zaki1003/YOLO-CROWD/assets/65148928/9e2d18ce-aaf6-4a20-91f0-d8d1eb88728c)
+
+
+## Finetune
+see in *[https://github.com/ultralytics/yolov5/issues/607](https://github.com/ultralytics/yolov5/issues/607)*
+```shell
+# Single-GPU
+python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --evolve
+
+# Multi-GPU
+for i in 0 1 2 3 4 5 6 7; do
+  sleep $(expr 30 \* $i) &&  # 30-second delay (optional)
+  echo 'Starting GPU '$i'...' &&
+  nohup python train.py --epochs 10 --data coco128.yaml --weights yolov5s.pt --cache --device $i --evolve > evolve_gpu_$i.log &
+done
+
+# Multi-GPU bash-while (not recommended)
+for i in 0 1 2 3 4 5 6 7; do
+  sleep $(expr 30 \* $i) &&  # 30-second delay (optional)
+  echo 'Starting GPU '$i'...' &&
+  "$(while true; do nohup python train.py... --device $i --evolve 1 > evolve_gpu_$i.log; done)" &
+done
+```
+
+## Reference
+*[https://github.com/ultralytics/yolov5](https://github.com/ultralytics/yolov5)*
+*[https://github.com/deepcam-cn/yolov5-face](https://github.com/Krasjet-Yu/YOLO-FaceV2)*
+*[https://github.com/open-mmlab/mmdetection](https://github.com/open-mmlab/mmdetection)*
+*[https://github.com/dongdonghy/repulsion_loss_pytorch](https://github.com/dongdonghy/repulsion_loss_pytorch)*
+*[https://github.com/zaki1003/YOLO-CROWD]*
