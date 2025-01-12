@@ -36,10 +36,11 @@ class DetectionResult(BaseModel):
     confidence: float
     bbox: list
 
-@app.post("/predict", response_model=list[DetectionResult])
+
+@app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     """
-    Endpoint untuk mendeteksi objek pada gambar yang diunggah.
+    Endpoint untuk mendeteksi jumlah orang pada gambar yang diunggah.
     """
     try:
         # Baca file gambar
@@ -60,18 +61,20 @@ async def predict(file: UploadFile = File(...)):
         pred = model(img_tensor)[0]
         detections = non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45)[0]  # Post-processing
 
-        # Buat respons
-        response = []
+        # Hitung jumlah orang yang terdeteksi
+        person_count = 0  # Variabel untuk menghitung jumlah orang
+
         if detections is not None:
             for det in detections:
                 x1, y1, x2, y2, conf, cls = det
-                response.append({
-                    "label": model_names[int(cls)],  # Mengambil nama kelas berdasarkan indeks
-                    "confidence": float(conf),
-                    "bbox": [float(x1), float(y1), float(x2), float(y2)],
-                })
-        return JSONResponse(content=response)
+                label = model_names[int(cls)]  # Mengambil nama kelas berdasarkan indeks
 
+                # Jika labelnya "person" (misal class_0 adalah orang), hitung jumlah orang
+                if label == "class_0":  # Gantilah dengan label yang sesuai untuk orang
+                    person_count += 1
+
+        # Mengembalikan jumlah orang yang terdeteksi
+        return {"total_people_detected": person_count}
 
     except Exception as e:
         logger.error(f"Error in /predict: {str(e)}")
