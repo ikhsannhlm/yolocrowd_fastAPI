@@ -91,7 +91,7 @@ async def predict(file: UploadFile = File(...)):
         return StreamingResponse(
             img_io,
             media_type="image/png",  # Atau "image/jpeg" jika Anda ingin menggunakan JPEG
-            headers={"X-Total-People-Detected": str(person_count)}  # Menambahkan header jumlah orang
+            headers={"Total-People-Detected": str(person_count)}  # Menambahkan header jumlah orang
         )
 
     except Exception as e:
